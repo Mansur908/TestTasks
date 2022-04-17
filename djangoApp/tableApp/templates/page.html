@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}"/>
+</head>
+<body background="{% static 'img/background.jpg' %}"></body>
+
+<form id="post-form" method="post" class="form">
+    {% csrf_token %}
+    <label id="filter_label" class="filter_label">Фильтр</label>
+    <br/>
+    <select id="column" name="column" class="column">
+        <option value="date">Дата</option>
+        <option value="name">Название</option>
+        <option value="quantity">Количество</option>
+        <option value="distance">Расстояние</option>
+    </select>
+    <select id="condition" name="condition" class="condition">
+        <option value="equals">Равно</option>
+        <option value="contains">Содержит</option>
+        <option value="over">Больше</option>
+        <option value="less">Меньше</option>
+    </select>
+    <input id="value" name="value" class="value" type="text" placeholder="value">
+
+    <br/>
+    <label id="sort_label" class="sort_label">Сортировка</label>
+    <br/>
+    <select id="sort" name="sort" class="sort">
+        <option value="name">Название</option>
+        <option value="quantity">Количество</option>
+        <option value="distance">Расстояние</option>
+    </select>
+    <input type="submit" value="Фильтровать и сортировать" class="submit">
+</form>
+
+<div id="div_t" class="div_t">
+    <div id="t">
+        <table width="800" border="1">
+            <thead>
+                <tr>
+                    <th>Дата</th >
+                    <th >Название</th>
+                    <th >Количество</th>
+                    <th >Расстояние</th>
+                </tr>
+            </thead>
+            <tbody id="tbody">
+            {% for i in result %}
+                <tr>
+                    <th>{{ i.date.isoformat}}</th>
+                    <th>{{ i.name}}</th>
+                    <th>{{ i.quantity}}</th>
+                    <th>{{ i.distance}}</th>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+$(document).on('submit', '#post-form', function (e){
+    e.preventDefault();
+
+    $.ajax({
+        type: 'POST',
+        url: "{% url 'main' %}",
+        data: {
+            column: $('#column').val(),
+            condition: $('#condition').val(),
+            value: $('#value').val(),
+            sort: $('#sort').val(),
+            csrfmiddlewaretoken:$('input[name=csrfmiddlewaretoken]').val(),
+        },
+        success: function (data) {
+            if (document.getElementById("t")) {
+                document.getElementById("t").remove();
+            }
+            $('#div_t').append("<div id=\"t\"></div>");
+
+            $('#t').append(" <table width=\"800\" border=\"1\">" +
+                                "<thead>" +
+                                    "<tr>" +
+                                        "<th>Дата</th >" +
+                                        "<th >Название</th>" +
+                                        "<th >Количество</th>" +
+                                        "<th >Расстояние</th>" +
+                                    "</tr>"+
+                                "</thead>"+
+                                "<tbody id=\"tbody\">");
+            if (data.length > 0) {
+                for (var i = 0; i < data.length; i++) {
+                    $('#tbody').append("<tr>" +
+                                        "<th>" + data[i].date + "</th>" +
+                                        "<th>" + data[i].name + "</th>" +
+                                        "<th>" + data[i].quantity + "</th>" +
+                                        "<th>" + data[i].distance + "</th>" +
+                                    "</tr>");
+                }
+                $('#t').append("</tbody>"+
+                    "</table>");
+            }
+        },
+    });
+});
+</script>
+</html>

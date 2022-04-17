@@ -1,0 +1,28 @@
+version: '3.8'
+
+volumes:
+  pgdata-api:
+
+services:
+  postgres:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=qwerty007
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=tableapp
+    volumes:
+      - pgdata-api:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  web:
+    container_name: test-api
+    build: ../djangoApp/
+    restart: always
+    env_file:
+      - ../djangoApp/envs/.env
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
